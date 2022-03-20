@@ -20,7 +20,7 @@
 7) Убедиться, что все работает (по умолчанию DAG is_paused_upon_creation=False т.е. сразу запустится при старте airflow)<br>
 	- можно залогинившись в UI airflow по адресу <http://host-ip:8080> login:airflow password:airflow<br>
 	И(ИЛИ)<br>
-	- сделав запрос к БД
+	- сделав запрос к БД<br>
 	```docker exec ${PWD##*/}_postgres_1 psql -U airflow -c "select * from dev_aae.t_pairs_value_hist;"```
 
 8) Чтобы все выключить выполнить команду<br>
