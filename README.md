@@ -1,5 +1,5 @@
 # practicum_airflow
-1) Скачать репозиторий в папку, из которой будет запускаться контейнер<br>
+1) Скачать репозиторий, перейти в него<br>
 ```git clone https://github.com/ae1ankudinov/practicum_airflow.git```
 
 2) Создать в этой папке директории для монтирования к airflow<br>
