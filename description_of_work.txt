@@ -1,0 +1,44 @@
+1) Создал дерикторию, из которой будем запускать контейнер
+mkdir simple_etl
+
+2) Перешел в нее
+cd simple_etl
+
+3) Скачал готовый docker-compose файл с официального репозитория
+curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.2.4/docker-compose.yaml'
+
+4) Создал в ней папки для монтирования к контейнеру airflow
+mkdir -p ./dags ./logs ./plugins
+
+5) Закинул в папку dags готовый DAG (exchange_dag_v2.py) и sql скрипт для инсерта данных в БД (insert_to_t_pairs_value_hist_v2.sql)
+cp ~/airflow/dags/exchange_dag_v2.py ~/airflow/dags/insert_to_t_pairs_value_hist_v2.sql ~/simple_etl/dags/
+
+6) Задаем переменную окружения 
+echo -e "AIRFLOW_UID=$(id -u)" > .env
+
+7) Отредактировал docker-compose.yaml файл
+	a) x-airflow-common:
+		environment:
+			AIRFLOW__CORE__LOAD_EXAMPLES: 'true' --> 'false' #выключим стандартные даги
+			AIRFLOW_CONN_TEST_PG: 'postgres://airflow:airflow@postgres/airflow' #добавил коннект к БД с тем именем, которое используется в DAG-е
+			AIRFLOW_CONN_TEST_HTTP: 'https://api.exchangerate.host' #добавил коннект к https://exchangerate.host/ для курса валют
+			AIRFLOW__CORE__DEFAULT_TIMEZONE: 'Europe/Moscow' #поменял дефолтное время в UI Airflow на Московское
+	b) services:
+		postgres:
+			image: postgres:13 --> postgres:14 #т.к. у меня уже локально установлен постгрес 14 версии
+		volumes:
+			- ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql #скрипт создания схемы данных и таблицы
+		ports:
+			- '5433:5432' # мапим порт хоста (5433 т.к. 5432 уже занят) к порту в контейнере
+		command: 
+		  -c listen_addresses=* #принимаем сообщения со всех адресов
+		  -c timezone=Europe/Moscow #поменял дефолтное время в pg на Московское 
+		  -c log_timezone=Europe/Moscow #поменял дефолтное время логов pg на Московское 
+		  
+8) Инициализируем БД для метаданных airflow
+docker-compose up airflow-init
+
+9) Запускаем airflow
+docker-compose up
+
+10) Зашел через UI airflow, убедился что DAG отработал. Также проверил в БД, результат сохранен.

@@ -1,0 +1,6 @@
+plugins/
+dags/
+logs/
+
+.env
+
